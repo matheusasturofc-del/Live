@@ -49,7 +49,7 @@ sempre navegador "$CHROME" --kiosk --no-sandbox --no-zygote --disable-gpu --no-f
   --disable-session-crashed-bubble --disable-dev-shm-usage --disable-features=Translate,VizDisplayCompositor \
   --autoplay-policy=no-user-gesture-required --password-store=basic --disable-breakpad \
   --window-position=0,0 --window-size=${LARGURA},${ALTURA} --user-data-dir=/tmp/chrome-live \
-  --force-device-scale-factor=1 "http://localhost:$PORTA/" >> navegador.log 2>&1 &
+  --force-device-scale-factor=1 ${CHROME_FLAGS:-} "http://localhost:$PORTA/" >> navegador.log 2>&1 &
 sleep 15
 
 # 5) captura tela + som e envia para o YouTube

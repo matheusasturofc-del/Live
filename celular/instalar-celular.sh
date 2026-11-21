@@ -47,7 +47,7 @@ if [ ! -f "$ENV" ]; then
   read -r -p "ID do seu canal (começa com UC...): " c < /dev/tty
   read -r -p "Crie uma senha para o painel /admin: " s < /dev/tty
   # celular: modo leve (24 fps) para não esquentar demais
-  printf 'STREAM_KEY=%s\nYT_CHANNEL_ID=%s\nADMIN_SENHA=%s\nFPS=24\nPRESET=ultrafast\nBITRATE=2500k\nCHROME=/usr/bin/chromium\n' \
+  printf 'STREAM_KEY=%s\nYT_CHANNEL_ID=%s\nADMIN_SENHA=%s\nFPS=24\nPRESET=ultrafast\nBITRATE=2500k\nCHROME=/usr/bin/chromium\nCHROME_FLAGS=--single-process\n' \
     "$k" "$c" "$s" > "$ENV"
   chmod 600 "$ENV"
 fi
