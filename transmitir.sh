@@ -54,7 +54,7 @@ sleep 15
 
 # 5) captura tela + som e envia para o YouTube
 log "Transmitindo ${LARGURA}x${ALTURA}@${FPS}fps"
-sempre ffmpeg ffmpeg -hide_banner -loglevel warning \
+sempre ffmpeg ffmpeg -hide_banner -loglevel warning -stats -stats_period 30 \
   -thread_queue_size 512 -f x11grab -draw_mouse 0 -framerate "$FPS" -video_size ${LARGURA}x${ALTURA} -i :99 \
   -thread_queue_size 512 -f pulse -i live.monitor \
   -c:v libx264 -preset "$PRESET" -tune zerolatency -b:v "$BITRATE" -maxrate "$BITRATE" -bufsize "$(( ${BITRATE%k} * 2 ))k" \
