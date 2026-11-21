@@ -32,6 +32,13 @@ echo "=== Baixando o jogo ==="
 if [ -d "$PASTA/.git" ]; then git -C "$PASTA" fetch --depth 1 origin "$BRANCH" && git -C "$PASTA" reset --hard FETCH_HEAD
 else git clone --depth 1 -b "$BRANCH" "$REPO" "$PASTA"; fi
 
+# Oracle Cloud: a imagem Ubuntu deles bloqueia portas no firewall interno. Libera a 80 (painel /admin).
+if iptables -S INPUT 2>/dev/null | grep -q REJECT; then
+  echo "=== Liberando a porta 80 no firewall interno ==="
+  iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
+  command -v netfilter-persistent >/dev/null && netfilter-persistent save >/dev/null 2>&1 || true
+fi
+
 echo "=== Montando (pode levar alguns minutos) ==="
 docker build -t live "$PASTA"
 mkdir -p /opt/live-dados /opt/live-musicas

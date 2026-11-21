@@ -11,7 +11,7 @@ Live **vertical** no YouTube Shorts, interativa, que roda **sozinha 24h** num se
 ## 📋 Resumo rápido
 
 1. Liberar live no YouTube
-2. Criar um servidor (VPS)
+2. Criar um servidor grátis na Oracle
 3. Conectar pelo app Termux
 4. Colar 1 comando
 5. Mandar as músicas pelo painel
@@ -52,47 +52,70 @@ youtube.com/account_advanced
 
 ---
 
-## 2️⃣ Servidor (VPS)
+## 2️⃣ Servidor grátis (Oracle Cloud)
 
-O servidor é um "computador na nuvem" que fica ligado pra sempre.
+O servidor é um "computador na nuvem" que fica ligado pra sempre. A Oracle dá um **grátis pra sempre**.
 
-**Precisa ter:**
-- Ubuntu 24.04
-- 2 núcleos (vCPU)
-- 2 GB de RAM ou mais
+> 💳 Pedem cartão de crédito só pra confirmar que você é uma pessoa. A conta grátis **não cobra nada**.
 
-**Onde criar:**
-- 💶 **Hetzner** (modelo CX22): cerca de €5/mês. Dá pra criar pelo celular.
-- 🆓 **Oracle Cloud Always Free**: grátis, mas o cadastro é mais chato e às vezes falta vaga.
-
-📝 **Anote:** o **IP** e a **senha de root**.
-
----
-
-## 3️⃣ Conectar pelo celular
-
-### Android
-**a)** Instale o app **Termux** (F-Droid ou Play Store).
-
-**b)** Abra e digite:
+### a) Preparar o Termux (Android)
+Instale o app **Termux** (F-Droid ou Play Store), abra e rode um comando por vez:
 ```
 pkg install openssh
 ```
-
-**c)** Depois (troque pelo seu IP):
 ```
-ssh root@SEU_IP
+ssh-keygen -t ed25519
 ```
+(aperte Enter 3 vezes)
+```
+cat ~/.ssh/id_ed25519.pub
+```
+Vai aparecer uma linha começando com `ssh-ed25519`. **Segure o dedo nela pra copiar.** Essa é a sua "chave".
 
-**d)** Digite `yes` e depois a senha do servidor.
+### b) Criar a conta
+Abra no navegador:
+```
+oracle.com/cloud/free
+```
+- Toque em **Start for free**.
+- **Home Region:** escolha com calma, porque **não dá pra mudar depois**. Se uma região der erro de "capacity" depois, as menos lotadas costumam funcionar melhor.
+- Confirme o e-mail e o cartão.
 
-> A senha não aparece enquanto você digita. É normal.
+### c) Criar o servidor
+No painel da Oracle: **☰ → Compute → Instances → Create instance**
 
-### iPhone
-Use o app **Termius**, com o IP, o usuário `root` e a senha.
+- **Name:** `live`
+- **Image:** toque em *Change image* → **Ubuntu** → **24.04** (não escolha a versão "Minimal")
+- **Shape:** toque em *Change shape* → **Ampere** → **VM.Standard.A1.Flex**
+  - **OCPU:** 4
+  - **Memory:** 24 GB
+  - (aparece a etiqueta *Always Free-eligible* ✅)
+- **SSH keys:** escolha **Paste public keys** e cole a chave do passo **a**.
+- Toque em **Create**.
 
-### Sem app
-Use o botão **"Console"** no site do servidor.
+> ❗ Deu erro **"Out of capacity"**? É falta de vaga na região. Tente com **2 OCPU / 12 GB**, tente outro *Availability domain* ou tente de novo mais tarde.
+
+Quando ficar **verde (Running)**, anote o **Public IP address**.
+
+### d) Liberar o painel /admin
+**☰ → Networking → Virtual cloud networks** → toque na rede → **Security** (ou *Security Lists*) → **Default Security List** → **Add Ingress Rules**:
+- **Source CIDR:** `0.0.0.0/0`
+- **Destination port range:** `80`
+- Toque em **Add**.
+
+---
+
+## 3️⃣ Conectar no servidor
+
+No Termux (troque pelo IP do servidor):
+```
+ssh ubuntu@SEU_IP
+```
+Digite `yes` quando perguntar. Pronto, você está dentro do servidor.
+
+> Usa outro servidor que não é da Oracle e que tem senha? Aí é `ssh root@SEU_IP` e a senha.
+
+> No iPhone, use o app **Termius**.
 
 ---
 
@@ -238,13 +261,16 @@ docker restart live
 - Confira se a chave está certa: `nano /opt/live.env`
 - Veja os erros: `docker logs -f live`
 
+**"Out of capacity" na Oracle**
+- Tente 2 OCPU / 12 GB, outro *Availability domain*, ou tente de novo mais tarde (às vezes em outro horário).
+
 **Os votos não aparecem**
 - Confira o ID do canal (começa com `UC`).
 - O chat só conecta depois que a live está no ar. Espere 1 minuto.
 
 **O painel /admin não abre**
 - Confira se digitou `http://` (sem o "s").
-- Na Oracle, libere a porta 80 no firewall do painel deles.
+- Na Oracle, confira a regra da porta 80 (passo 2️⃣ d).
 
 ---
 
