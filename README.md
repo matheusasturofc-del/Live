@@ -4,7 +4,7 @@ Live **vertical** no YouTube Shorts, interativa, que roda **sozinha 24h** num se
 
 ✅ Não precisa de computador
 ✅ Não precisa do celular ligado
-✅ Dá pra pagar o servidor com **Pix** (sem cartão)
+✅ **Grátis rodando no seu celular Android**, ou num servidor pago com **Pix**
 ✅ Tudo se configura pelo celular
 
 ---
@@ -12,10 +12,9 @@ Live **vertical** no YouTube Shorts, interativa, que roda **sozinha 24h** num se
 ## 📋 Resumo rápido
 
 1. Liberar live no YouTube
-2. Contratar um servidor (VPS) com Pix
-3. Conectar pelo app Termux
-4. Colar 1 comando
-5. Mandar as músicas pelo painel
+2. Escolher onde roda:
+   - 📱 **No celular (grátis)** → seção 📱 logo abaixo
+   - 🖥 **Num servidor (pago, com Pix)** → seções 2️⃣ a 5️⃣
 
 Cada passo está explicado abaixo 👇
 
@@ -53,7 +52,67 @@ youtube.com/account_advanced
 
 ---
 
-## 2️⃣ Servidor (VPS) com Pix
+## 📱 Rodar no celular (grátis)
+
+O celular vira o servidor. Tudo roda **em segundo plano**: a tela pode ficar apagada e você continua usando o celular.
+
+### ⚠️ Antes de começar
+- 🔌 **Sempre no carregador.**
+- 📶 **Sempre no Wi-Fi.** A live envia uns **25 GB por dia**, então nunca use dados móveis.
+- 🔥 O celular **esquenta**. Tire a capinha e deixe num lugar ventilado.
+- 🐢 Enquanto a live roda, o celular pode ficar **mais lento**.
+- 🔋 Samsung: em **Configurações → Bateria → Proteger bateria**, ative o limite de **85%**.
+
+### a) Instalar os apps
+Instale pela **F-Droid** (loja de apps grátis, baixe em `f-droid.org`):
+- **Termux**
+- **Termux:Boot** (pra live ligar sozinha quando o celular reiniciar)
+
+> Use os dois da **mesma loja** (F-Droid). A versão da Play Store não conversa com o Termux:Boot.
+
+Abra o **Termux:Boot** uma vez e feche.
+
+### b) Não deixar o Android fechar o Termux
+**Configurações → Aplicativos → Termux → Bateria → "Sem restrições"**
+
+Faça o mesmo pro **Termux:Boot**.
+
+### c) Instalar a live
+Abra o **Termux**, cole e aperte Enter:
+```bash
+curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/live-infinita-automatizada-ns6yq7/celular/instalar-celular.sh | bash
+```
+- Se perguntar algo com `[Y/n]`, digite `y` e Enter.
+- Demora uns **10 a 20 minutos**.
+- No fim, ele pede: **chave da stream**, **ID do canal** e uma **senha do painel**.
+
+### d) Ligar a live
+**Feche o Termux totalmente** (arraste ele pra fora dos apps recentes), abra de novo e digite:
+```
+live
+```
+Pronto, a live está ligada em segundo plano! 🎉
+
+### Comandos do celular
+- `live` → liga a live
+- `live-parar` → desliga a live
+- `live-log` → mostra o que está acontecendo (sair: Ctrl + C)
+- `live-atualizar` → baixa a versão mais nova do jogo
+
+**Painel** (no navegador do próprio celular):
+```
+http://localhost:3000/admin
+```
+**Ver o jogo:**
+```
+http://localhost:3000/
+```
+
+> Pra mudar a chave, o canal ou a senha: `nano ~/live.env`, depois `live-parar` e `live`.
+
+---
+
+## 2️⃣ Servidor (VPS) com Pix — opção paga
 
 O servidor é um "computador na nuvem" que fica ligado pra sempre.
 
@@ -243,6 +302,15 @@ docker restart live
 ---
 
 ## ❓ Problemas comuns
+
+**📱 Celular: a live para sozinha**
+- Confira o passo **b)** (bateria "Sem restrições").
+- Deixe a notificação do Termux aparecendo. Ela mantém a live viva.
+- Veja os erros com `live-log`.
+
+**📱 Celular: muito quente ou travando**
+- Tire a capinha, use um ventilador e não jogue nada pesado enquanto a live roda.
+- No `nano ~/live.env`, troque `FPS=24` por `FPS=20`.
 
 **A live não aparece no YouTube**
 - Veja os erros: `docker logs -f live`

@@ -29,11 +29,14 @@ sempre Xvfb Xvfb :99 -screen 0 ${LARGURA}x${ALTURA}x24 -nolisten tcp -ac &
 sleep 2
 
 # 2) som virtual
-pulseaudio --kill >/dev/null 2>&1
-pulseaudio -D --exit-idle-time=-1 --disallow-exit --log-level=error 2>/dev/null
-sleep 1
-pactl load-module module-null-sink sink_name=live sink_properties=device.description=live >/dev/null
-pactl set-default-sink live
+# (no celular, o som virtual é ligado pelo Termux e chega aqui via PULSE_SERVER)
+if [ -z "${PULSE_SERVER:-}" ]; then
+  pulseaudio --kill >/dev/null 2>&1
+  pulseaudio -D --exit-idle-time=-1 --disallow-exit --log-level=error 2>/dev/null
+  sleep 1
+  pactl load-module module-null-sink sink_name=live sink_properties=device.description=live >/dev/null
+  pactl set-default-sink live
+fi
 
 # 3) servidor do jogo (votos, doações, chat do YouTube)
 sempre servidor node servidor/server.js &
