@@ -63,11 +63,15 @@ O servidor é um "computador na nuvem" que fica ligado pra sempre.
 - ✅ **2 vCPU** e **2 GB de RAM** (recomendado)
 - 🟡 **1 vCPU** também funciona, num modo mais leve (24 fps), mas fica no limite
 
-**Provedores brasileiros que aceitam Pix (confira o preço na hora):**
-- DokeHost
-- Locaweb
-- Hostinger (plano KVM)
-- VPS Brasil
+**Recomendado: DokeHost → VPS Linux** (pesquisa de nov/2026)
+- ✅ Aceita **Pix** (ativa na hora) e boleto
+- ✅ Virtualização **KVM**
+- ✅ Pagamento **mensal**, sem fidelidade
+- ✅ **7 dias** pra pedir o dinheiro de volta
+- Escolha o plano com **2 vCPU / 2 GB**, datacenter **Brasil**, sistema **Ubuntu** (versão LTS mais nova)
+
+**Outras opções:** KingHost (2 vCPU / 4 GB por cerca de R$ 33/mês, tem boleto), Locaweb, Hostinger KVM.
+Confira o preço na hora de pagar, porque promoções mudam.
 
 > 💡 Prefira **pagamento mensal**. Preço "promocional" geralmente exige contrato longo e aumenta na renovação.
 
