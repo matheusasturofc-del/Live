@@ -97,6 +97,53 @@ const PASTA_MUSICA = path.join(PUBLICO, 'audio', 'custom');
 let versaoMusica = Date.now();
 const statusChat = { texto: 'iniciando' };
 
+// ---------------- Envio para o YouTube (modo captura pelo navegador) ----------------
+// O navegador grava o jogo (H.264 + Opus em WebM) e manda pedaços de 1s para cá; o FFmpeg
+// só converte o som para AAC e repassa o vídeo sem recodificar (quase não gasta processador).
+const { spawn, exec } = require('child_process');
+const SAIDA = process.env.SAIDA_TESTE || process.env.SAIDA ||
+  `${(process.env.RTMP_URL || 'rtmp://a.rtmp.youtube.com/live2').replace(/\/$/, '')}/${process.env.STREAM_KEY || ''}`;
+const FPS = Number(process.env.FPS || 24);
+const BITRATE = Number(String(process.env.BITRATE || '2500k').replace(/k$/i, '')) * 1000;
+let ffmpeg = null, sessaoFfmpeg = null, ultimoPedaco = 0;
+
+function iniciarFfmpeg(sessao, tipo) {
+  if (ffmpeg) { try { ffmpeg.kill('SIGKILL'); } catch (_) { /* ignora */ } }
+  const copiar = /h264|avc1/.test(tipo);
+  const video = copiar ? ['-c:v', 'copy'] : ['-c:v', 'libx264', '-preset', 'ultrafast', '-b:v', String(BITRATE),
+    '-pix_fmt', 'yuv420p', '-g', String(FPS * 2)];
+  const args = ['-y', '-hide_banner', '-loglevel', 'warning', '-stats', '-stats_period', '30', '-fflags', '+genpts',
+    '-i', 'pipe:0', ...video, '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-ac', '2', '-f', 'flv', SAIDA];
+  log(`Enviando para o YouTube (vídeo ${copiar ? 'sem recodificar' : 'recodificado'})`);
+  const proc = spawn('ffmpeg', args, { stdio: ['pipe', 'inherit', 'inherit'] });
+  proc.stdin.on('error', () => {});
+  proc.on('exit', (c) => { log(`FFmpeg parou (código ${c})`); if (ffmpeg === proc) { ffmpeg = null; } });
+  ffmpeg = proc; sessaoFfmpeg = sessao;
+}
+
+function receberPedaco(req, res, url) {
+  const sessao = url.searchParams.get('sessao');
+  const tipo = url.searchParams.get('tipo') || '';
+  const partes = [];
+  req.on('data', (c) => partes.push(c));
+  req.on('end', () => {
+    ultimoPedaco = Date.now();
+    if (sessao !== sessaoFfmpeg) iniciarFfmpeg(sessao, tipo); // gravação nova (tem cabeçalho)
+    else if (!ffmpeg) { json(res, { reiniciar: true }); sessaoFfmpeg = null; return; } // FFmpeg caiu: pede gravação nova
+    ffmpeg.stdin.write(Buffer.concat(partes));
+    json(res, { ok: true });
+  });
+}
+
+// Se o navegador travar (sem pedaços por 60s), fecha ele; o transmitir.sh abre de novo
+setInterval(() => {
+  if (process.env.CAPTURA === 'navegador' && ultimoPedaco && Date.now() - ultimoPedaco > 60000) {
+    log('Navegador sem enviar vídeo há 60s, reiniciando ele');
+    ultimoPedaco = 0;
+    exec('pkill -f chrome-live');
+  }
+}, 15000);
+
 const servidor = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const r = url.pathname;
@@ -131,6 +178,11 @@ const servidor = http.createServer(async (req, res) => {
   }
   if (r === '/admin') return arquivo(res, PUBLICO, 'admin.html');
   if (r === '/api/paises') return json(res, paises);
+  if (r === '/api/config') return json(res, { fps: FPS, bitrate: BITRATE });
+  if (r === '/api/stream' && req.method === 'POST') {
+    if (!ehLocal(req)) { res.writeHead(403).end(); return; }
+    return receberPedaco(req, res, url);
+  }
   if (r === '/api/estado' && req.method === 'GET') return json(res, lerJson('estado.json', null));
   if (r === '/api/estado' && req.method === 'POST') { salvarJson('estado.json', await corpo(req)); return json(res, { ok: true }); }
   if (r === '/api/votos') {

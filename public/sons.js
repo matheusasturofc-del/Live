@@ -4,6 +4,8 @@
   const Ctx = window.AudioContext || window.webkitAudioContext;
   const ctx = new Ctx();
   const mestre = ctx.createGain(); mestre.gain.value = 0.9; mestre.connect(ctx.destination);
+  // cópia do som para o gravador da live (modo captura pelo navegador)
+  const destinoGravacao = ctx.createMediaStreamDestination(); mestre.connect(destinoGravacao);
   const sfx = ctx.createGain(); sfx.gain.value = 0.55; sfx.connect(mestre);
   let VOL_MUSICA = 0.32;
   const busMusica = ctx.createGain(); busMusica.gain.value = VOL_MUSICA; busMusica.connect(mestre);
@@ -43,6 +45,7 @@
   const ESCALA = [0, 3, 5, 7, 10, 12, 15];
   const Sons = {
     ctx,
+    streamAudio: destinoGravacao.stream,
     async iniciar() { if (ctx.state !== 'running') await ctx.resume().catch(() => {}); },
     ativo() { return ctx.state === 'running'; },
 

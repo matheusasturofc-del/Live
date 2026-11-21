@@ -449,5 +449,44 @@
   requestAnimationFrame(quadro);
 
   // Para testes: window.jogo
+  // ---------- modo captura pelo navegador: grava o canvas + som e manda pro servidor ----------
+  if (new URLSearchParams(location.search).has('transmitir')) iniciarGravador();
+
+  async function iniciarGravador() {
+    const cfg = await fetch('/api/config').then((r) => r.json()).catch(() => ({ fps: 24, bitrate: 2500000 }));
+    const tipos = ['video/webm;codecs=h264,opus', 'video/x-matroska;codecs=avc1,opus', 'video/webm;codecs=vp8,opus'];
+    const tipo = tipos.find((t) => MediaRecorder.isTypeSupported(t));
+    let gravador = null, sessao = 0, fila = [], enviando = false;
+
+    function comecar() {
+      const stream = new MediaStream([...tela.captureStream(cfg.fps).getVideoTracks(), ...Sons.streamAudio.getAudioTracks()]);
+      sessao = Date.now();
+      const minha = sessao;
+      gravador = new MediaRecorder(stream, { mimeType: tipo, videoBitsPerSecond: cfg.bitrate, audioBitsPerSecond: 128000,
+        videoKeyFrameIntervalDuration: 2000 });
+      gravador.ondataavailable = (e) => { if (e.data.size && minha === sessao) { fila.push({ sessao: minha, blob: e.data }); enviar(); } };
+      gravador.start(1000);
+    }
+
+    async function enviar() {
+      if (enviando) return;
+      enviando = true;
+      while (fila.length) {
+        const item = fila.shift();
+        if (item.sessao !== sessao) continue;
+        try {
+          const r = await fetch(`/api/stream?sessao=${item.sessao}&tipo=${encodeURIComponent(tipo)}`, { method: 'POST', body: item.blob });
+          const d = await r.json();
+          if (d.reiniciar) { // o servidor reiniciou o envio: começa uma gravação nova (com cabeçalho novo)
+            fila = []; try { gravador.stop(); } catch (_) { /* ignora */ }
+            setTimeout(comecar, 1000); break;
+          }
+        } catch (_) { await new Promise((ok) => setTimeout(ok, 1000)); }
+      }
+      enviando = false;
+    }
+    comecar();
+  }
+
   window.jogo = { estado: () => estado, fase: () => fase, forcarBot: () => { botAte = Date.now() + 9000; botTexto = BOT_MSGS[0].texto; Sons.voz(BOT_MSGS[0].voz); } };
 })();
