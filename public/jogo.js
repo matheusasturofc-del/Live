@@ -458,6 +458,23 @@
     const tipo = tipos.find((t) => MediaRecorder.isTypeSupported(t));
     let gravador = null, sessao = 0, fila = [], enviando = false;
 
+    // Aviso na tela do aparelho (fica fora do canvas, então NÃO aparece na live)
+    const aviso = document.createElement('div');
+    aviso.style.cssText = 'position:fixed;top:6px;left:6px;z-index:9;padding:4px 8px;border-radius:8px;' +
+      'font:12px sans-serif;color:#fff;background:rgba(0,0,0,.6);pointer-events:none';
+    document.body.appendChild(aviso);
+    let ultimoOk = 0;
+    setInterval(() => {
+      const ok = Date.now() - ultimoOk < 5000;
+      aviso.textContent = ok ? '🔴 transmitindo (' + (tipo || '?').split(';')[1] + ')' : '⚠️ sem conexão com o servidor do Termux';
+      aviso.style.background = ok ? 'rgba(0,120,0,.7)' : 'rgba(180,0,0,.8)';
+    }, 1000);
+
+    // Mantém a tela ligada enquanto transmite (Chrome do celular)
+    async function manterTelaLigada() { try { await navigator.wakeLock.request('screen'); } catch (_) { /* sem suporte */ } }
+    manterTelaLigada();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) manterTelaLigada(); });
+
     function comecar() {
       const stream = new MediaStream([...tela.captureStream(cfg.fps).getVideoTracks(), ...Sons.streamAudio.getAudioTracks()]);
       sessao = Date.now();
@@ -477,6 +494,7 @@
         try {
           const r = await fetch(`/api/stream?sessao=${item.sessao}&tipo=${encodeURIComponent(tipo)}`, { method: 'POST', body: item.blob });
           const d = await r.json();
+          if (d.ok) ultimoOk = Date.now();
           if (d.reiniciar) { // o servidor reiniciou o envio: começa uma gravação nova (com cabeçalho novo)
             fila = []; try { gravador.stop(); } catch (_) { /* ignora */ }
             setTimeout(comecar, 1000); break;
