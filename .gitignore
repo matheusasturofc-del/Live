@@ -4,3 +4,4 @@ dados/
 .env
 public/audio/custom/*
 !public/audio/custom/LEIA-ME.txt
+previa-live.mp4
