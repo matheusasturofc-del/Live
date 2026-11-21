@@ -30,7 +30,7 @@ trap 'log "Encerrando"; kill 0; exit 0' INT TERM
 OPCOES_NAVEGADOR=(--no-sandbox --no-zygote --disable-gpu --no-first-run --noerrdialogs --disable-infobars
   --disable-session-crashed-bubble --disable-dev-shm-usage --disable-features=Translate
   --autoplay-policy=no-user-gesture-required --password-store=basic --disable-breakpad
-  --window-size=${LARGURA},${ALTURA} --user-data-dir=/tmp/chrome-live --force-device-scale-factor=1)
+  --window-size=${LARGURA},${ALTURA} --user-data-dir=${TMPDIR:-/tmp}/chrome-live --force-device-scale-factor=1)
 
 if [ "$CAPTURA" = "navegador" ]; then
   # 1) servidor do jogo: recebe a gravação do navegador e envia ao YouTube
@@ -38,7 +38,7 @@ if [ "$CAPTURA" = "navegador" ]; then
   for _ in $(seq 1 30); do curl -s "localhost:$PORTA/api/votos" >/dev/null && break; sleep 1; done
   # 2) navegador sem tela, gravando o jogo
   log "Transmitindo ${LARGURA}x${ALTURA}@${FPS}fps (gravação pelo navegador)"
-  rm -rf /tmp/chrome-live/Singleton* 2>/dev/null
+  rm -rf ${TMPDIR:-/tmp}/chrome-live/Singleton* 2>/dev/null
   sempre navegador "$CHROME" --headless=new "${OPCOES_NAVEGADOR[@]}" ${CHROME_FLAGS:-} \
     "http://localhost:$PORTA/?transmitir=1" >> navegador.log 2>&1 &
   wait
@@ -67,7 +67,7 @@ sempre servidor node servidor/server.js &
 for _ in $(seq 1 30); do curl -s "localhost:$PORTA/api/votos" >/dev/null && break; sleep 1; done
 
 # 4) navegador mostrando o jogo em tela cheia (erros vão para navegador.log)
-rm -rf /tmp/chrome-live/Singleton* 2>/dev/null
+rm -rf ${TMPDIR:-/tmp}/chrome-live/Singleton* 2>/dev/null
 sempre navegador "$CHROME" --kiosk --window-position=0,0 "${OPCOES_NAVEGADOR[@]}" ${CHROME_FLAGS:-} \
   "http://localhost:$PORTA/" >> navegador.log 2>&1 &
 sleep 15
