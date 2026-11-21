@@ -10,8 +10,8 @@ export CHROME="$(command -v chromium-browser || command -v chromium)"
 export CHROME_FLAGS="${CHROME_FLAGS_NATIVO:---single-process}"
 export TMPDIR="${TMPDIR:-$PREFIX/tmp}"
 unset PULSE_SERVER
-# o termux-exec (LD_PRELOAD) faz os processos internos do Chromium falharem ("CANNOT LINK EXECUTABLE")
-unset LD_PRELOAD
+# Termux novo precisa do termux-exec (LD_PRELOAD) para executar programas; por isso o Chromium roda em
+# processo único (--single-process): ele não consegue abrir processos internos ("CANNOT LINK EXECUTABLE").
 if [ -z "$CHROME" ]; then echo "Chromium do Termux não encontrado: pkg install tur-repo && pkg install chromium"; exit 1; fi
 while true; do
   bash ./transmitir.sh
