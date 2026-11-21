@@ -430,8 +430,13 @@
 
   // ---------- som ----------
   const avisoSom = document.getElementById('som');
-  async function ligarSom() { await Sons.iniciar(); if (Sons.ativo()) { avisoSom.style.display = 'none'; Sons.musica(); } }
+  // No celular o navegador só libera o som depois de um toque: não espera por isso (senão o jogo nem começa)
+  async function ligarSom() {
+    await Promise.race([Sons.iniciar(), new Promise((ok) => setTimeout(ok, 400))]);
+    if (Sons.ativo()) { avisoSom.style.display = 'none'; Sons.musica(); }
+  }
   avisoSom.addEventListener('click', ligarSom);
+  document.addEventListener('pointerdown', ligarSom);
   await ligarSom();
   if (!Sons.ativo()) avisoSom.style.display = 'flex';
 
