@@ -1,0 +1,5 @@
+Músicas personalizadas (opcional):
+  fundo.mp3   -> toca em loop no fundo (senão, usa a trilha original gerada pelo jogo)
+  doacao.mp3  -> toca depois de cada doação
+Também dá para baixar automaticamente ao ligar, com as variáveis MUSICA_FUNDO_URL e MUSICA_DOACAO_URL.
+Atenção: músicas com direitos autorais podem fazer o YouTube silenciar ou derrubar a live.

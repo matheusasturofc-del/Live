@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da Live</title>
+<style>
+  :root { --fundo: #0f1115; --cartao: #1a1d24; --texto: #f2f2f2; --suave: #9aa0aa; --destaque: #ffcc00; --ok: #2bd67b; --erro: #ff5a5a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.45 system-ui, sans-serif; padding: 16px; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  .cartao { background: var(--cartao); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  h2 { font-size: 17px; margin: 0 0 10px; color: var(--destaque); }
+  input[type=password], input[type=file] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #0b0c10; color: var(--texto); font-size: 16px; }
+  button { width: 100%; margin-top: 10px; padding: 13px; border: 0; border-radius: 10px; background: var(--destaque); color: #000; font-weight: 700; font-size: 16px; }
+  button.secundario { background: #2a2e37; color: var(--texto); }
+  .suave { color: var(--suave); font-size: 14px; }
+  .msg { margin-top: 8px; font-size: 14px; }
+  pre { white-space: pre-wrap; word-break: break-word; font-size: 13px; color: var(--suave); margin: 0; }
+  #painel { display: none; }
+</style>
+</head>
+<body>
+<h1>🎮 Painel da Live</h1>
+
+<div class="cartao" id="login">
+  <h2>Entrar</h2>
+  <input type="password" id="senha" placeholder="Senha (ADMIN_SENHA)">
+  <button onclick="entrar()">Entrar</button>
+  <div class="msg" id="msgLogin"></div>
+</div>
+
+<div id="painel">
+  <div class="cartao">
+    <h2>Status</h2>
+    <pre id="status">carregando...</pre>
+    <button class="secundario" onclick="carregarStatus()">Atualizar</button>
+  </div>
+
+  <div class="cartao">
+    <h2>🎵 Música de fundo</h2>
+    <p class="suave">Toca em loop. Sem arquivo, toca a trilha original do jogo.</p>
+    <input type="file" id="arqFundo" accept="audio/mpeg,.mp3">
+    <button onclick="enviar('fundo')">Enviar música de fundo</button>
+    <button class="secundario" onclick="remover('fundo')">Voltar para a trilha original</button>
+    <div class="msg" id="msgFundo"></div>
+  </div>
+
+  <div class="cartao">
+    <h2>💸 Som depois de doação</h2>
+    <input type="file" id="arqDoacao" accept="audio/mpeg,.mp3">
+    <button onclick="enviar('doacao')">Enviar som de doação</button>
+    <button class="secundario" onclick="remover('doacao')">Remover som de doação</button>
+    <button class="secundario" onclick="testarDoacao()">Testar notificação de doação</button>
+    <div class="msg" id="msgDoacao"></div>
+  </div>
+
+  <p class="suave">A troca de música aparece na live ao começar a próxima batalha.
+  Músicas com direitos autorais podem fazer o YouTube silenciar ou derrubar a live.</p>
+</div>
+
+<script>
+  let senha = '';
+  try { senha = localStorage.getItem('senhaLive') || ''; } catch (_) {}
+  const api = (rota, op = {}) => fetch(rota, { ...op, headers: { 'x-senha': senha, ...(op.headers || {}) } });
+
+  async function entrar() {
+    senha = document.getElementById('senha').value.trim() || senha;
+    const r = await api('/api/admin/status');
+    if (!r.ok) { document.getElementById('msgLogin').textContent = 'Senha errada (ou ADMIN_SENHA não configurada).'; return; }
+    try { localStorage.setItem('senhaLive', senha); } catch (_) {}
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('painel').style.display = 'block';
+    mostrar(await r.json());
+  }
+
+  function mostrar(s) {
+    const e = s.estado || {};
+    const linhas = [
+      'Chat: ' + s.chat,
+      'Ciclo: ' + (e.ciclo || 1) + ' · Copa ' + ((e.copa || 0) + 1) + '/5 · Fase: ' + (e.fase || 'qual') + ' #' + ((e.idx || 0) + 1),
+      'Países com votos agora: ' + s.votosAbertos,
+      '"67" bloqueados: ' + s.bloqueados67,
+      'Campeões passados: ' + ((e.passados || []).map((p) => p.code).join(', ') || 'nenhum'),
+      'Músicas enviadas: ' + (s.musicas.join(', ') || 'nenhuma (trilha original)'),
+      'Top doadores: ' + (s.doadores.map((d) => d.usuario + ' $' + d.usd).join(', ') || 'nenhum'),
+    ];
+    document.getElementById('status').textContent = linhas.join('\n');
+  }
+
+  async function carregarStatus() { const r = await api('/api/admin/status'); if (r.ok) mostrar(await r.json()); }
+
+  async function enviar(tipo) {
+    const campo = document.getElementById(tipo === 'fundo' ? 'arqFundo' : 'arqDoacao');
+    const msg = document.getElementById(tipo === 'fundo' ? 'msgFundo' : 'msgDoacao');
+    if (!campo.files[0]) { msg.textContent = 'Escolha um arquivo .mp3 primeiro.'; return; }
+    msg.textContent = 'Enviando...';
+    const r = await api('/api/admin/musica?tipo=' + tipo, { method: 'PUT', body: campo.files[0] });
+    msg.textContent = r.ok ? '✅ Enviado! Entra na próxima batalha.' : '❌ Erro ao enviar.';
+    carregarStatus();
+  }
+
+  async function remover(tipo) {
+    await api('/api/admin/musica?tipo=' + tipo, { method: 'DELETE' });
+    document.getElementById(tipo === 'fundo' ? 'msgFundo' : 'msgDoacao').textContent = 'Removido.';
+    carregarStatus();
+  }
+
+  async function testarDoacao() {
+    const r = await api('/api/admin/doacao-teste', { method: 'POST' });
+    document.getElementById('msgDoacao').textContent = r.ok ? 'Notificação de teste enviada para a live.' : 'Erro.';
+  }
+
+  if (senha) entrar();
+</script>
+</body>
+</html>

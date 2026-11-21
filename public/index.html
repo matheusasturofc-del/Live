@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Country Battle Royale</title>
+<style>
+  @font-face { font-family: 'Jogo'; src: url('/fonte.woff2') format('woff2'); font-display: block; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { height: 100vh; width: calc(100vh * 9 / 16); max-width: 100vw; max-height: calc(100vw * 16 / 9); display: block; }
+  #som { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; color: #fff;
+    font: 28px 'Jogo', sans-serif; background: rgba(0,0,0,.6); cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="tela" width="720" height="1280"></canvas>
+<div id="som">TAP TO ENABLE SOUND</div>
+<script src="/batalha.js"></script>
+<script src="/torneio.js"></script>
+<script src="/sons.js"></script>
+<script src="/jogo.js"></script>
+</body>
+</html>

@@ -1,111 +1,113 @@
-# Live infinita 24/7 (sem aparecer, sem precisar mexer)
+# 🌍 Country Battle Royale: live interativa 24/7 no YouTube Shorts
 
-Transmite para **YouTube, Twitch, Kick, Facebook** (qualquer plataforma com RTMP) em loop infinito,
-usando só o FFmpeg. Se a conexão cair, ele **reconecta sozinho**; se o servidor reiniciar, a live **volta sozinha**.
+Uma live **vertical** (aparece no feed do Shorts) que roda **sozinha, 24 horas**, num servidor na nuvem.
+Não precisa de computador nem do seu celular ligado.
 
-Dois modos:
+## Como o jogo funciona
+- Cada país é uma bolinha com a bandeira, quicando dentro de um círculo.
+- **Bateu na parede → cria 3 fios** (da parede até a bandeira).
+- **Passou por cima do fio de outro país → destrói o fio.**
+- Ficou sem fios → **eliminado**. O último que sobrar vence.
+- Sons próprios pra tudo: fio estourando, eliminação, contagem regressiva, vitória e campeão.
 
-| Modo | O que aparece na live | Ideal para |
-|------|----------------------|------------|
-| `videos` | Seus vídeos tocando em loop (ordem embaralhada) | Compilados, gameplays gravados, cortes, paisagens |
-| `imagem` | Uma imagem fixa + playlist de músicas em loop | Rádio lofi, música para estudar/dormir, sons de chuva |
+### Votação pelo chat
+- O bot lê o chat e reconhece nomes de países em **mais de 25 línguas** (inglês, português, espanhol,
+  francês, alemão, árabe, hindi, russo, turco, japonês, coreano, chinês…) e também **emojis de bandeira** 🇧🇷.
+- **Os 5 mais comentados lutam na próxima rodada.** Cada pessoa conta 1 voto por país (spam não adianta).
+- O mesmo país pode voltar em outras rodadas, mas nunca 2 vezes na mesma.
+- Se ninguém comentar, entram **países padrão** (sorteados entre todos os ~200).
+- Mensagens só com **"67"** são bloqueadas (aparece um contador na tela).
+- A cada **5 minutos** o bot fala e mostra na tela, intercalando: **"DON'T SPAM 67!"** e **"COMMENT WHAT NEXT COUNTRY!"**
 
----
+### Campeonato
+1. **20 rodadas classificatórias** de 5 países → 20 vencedores
+2. **Fase de grupos**: 4 lutas de 5 contra 5 → 4 vencedores
+3. **Semifinais** (2 duelos) → **final** → campeão da **Chave A**
+4. Tudo de novo → campeão da **Chave B** → **final da Copa** (A x B) → **campeão da Copa**
+5. Isso se repete **5 vezes** (5 copas) → os 5 campeões lutam na **GRANDE FINAL** → **GRAND CHAMPION** 🏆
+6. O grande campeão vai para **PAST CHAMPIONS** no topo da tela e **tudo reseta**.
 
-## Por que precisa de um servidor (VPS)?
+Um ciclo completo tem 276 batalhas (cerca de 4 a 5 horas). O progresso fica salvo: se o servidor reiniciar, continua de onde parou.
 
-Se a live rodar no seu PC, ela só fica no ar enquanto o PC estiver ligado e com internet.
-Para ficar **24 horas sem você mexer**, rode num servidor na nuvem (VPS). Opções:
-
-- **Oracle Cloud – Always Free**: máquina ARM gratuita (até 4 núcleos / 24 GB). Dá conta de 720p tranquilo.
-- **VPS pago barato** (Hetzner, Contabo, DigitalOcean, Vultr etc.): de ~R$ 25 a R$ 60/mês.
-  - Modo `imagem` em 720p: 1–2 vCPUs bastam.
-  - Modo `videos` recodificando em 720p: 2 vCPUs. Em 1080p: 4 vCPUs.
-  - Usando `./preparar.sh` + `COPIAR_SEM_RECODIFICAR=1`: **qualquer VPS de 1 vCPU** serve (quase não usa CPU).
-- Precisa de upload estável de ~4–7 Mbps (todo VPS tem de sobra).
-
-Escolha Ubuntu ou Debian ao criar o servidor.
-
----
-
-## Passo a passo
-
-### 1. Pegue a chave de transmissão
-- **YouTube**: YouTube Studio → *Criar* → *Transmitir ao vivo* → aba *Stream*. Copie a **chave da stream**.
-  Em *Configurações da stream*, **ative** "Ativar início automático" e **desative** "Ativar término automático",
-  para a live reabrir sozinha se cair. (A conta precisa estar verificada e liberada para lives, o que pode levar 24h na primeira vez.)
-- **Twitch**: Painel do criador → *Configurações* → *Transmissão* → *Chave de transmissão primária*.
-
-> Nunca mostre essa chave para ninguém: com ela qualquer um transmite no seu canal.
-
-### 2. Instale no servidor
-```bash
-sudo apt update && sudo apt install -y ffmpeg git
-sudo git clone https://github.com/matheusasturofc-del/live.git /opt/live
-cd /opt/live
-cp config.env.example config.env
-nano config.env      # cole a STREAM_KEY e escolha o MODO
-```
-
-### 3. Envie suas mídias para o servidor
-Do seu computador (troque `IP_DO_SERVIDOR`):
-```bash
-scp meus-videos/*.mp4  root@IP_DO_SERVIDOR:/opt/live/midia/videos/
-scp capa.jpg           root@IP_DO_SERVIDOR:/opt/live/midia/imagem/
-scp musicas/*.mp3      root@IP_DO_SERVIDOR:/opt/live/midia/musicas/
-```
-(No Windows dá para usar o programa **WinSCP**, arrastando os arquivos.)
-
-### 4. Teste
-```bash
-./live.sh
-```
-Abra o YouTube Studio / Twitch e veja a live entrando. `Ctrl + C` para parar.
-
-### 5. Deixe rodando para sempre
-```bash
-sudo cp live.service /etc/systemd/system/live.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now live
-```
-Pronto: pode fechar tudo e desligar seu PC. Comandos úteis:
-```bash
-sudo systemctl status live     # está rodando?
-journalctl -u live -f          # ver o log ao vivo
-sudo systemctl restart live    # reiniciar (ex.: depois de adicionar vídeos)
-sudo systemctl stop live       # parar a live
-```
-
-**Alternativa com Docker:** `docker compose up -d --build` (já vem com `restart: always`).
+### Doações
+- **Super Chat, Super Sticker e novos membros** → notificação na tela **"THANKS FOR THE DONATION!"**
+  com o nome e o valor, som de moedas, a voz do bot agradecendo e o seu som de doação.
+- **TOP DONATORS**: ranking dos maiores doadores (valores convertidos para dólar só pra ordenar), salvo pra sempre.
+- ⚠️ Os "presentes"/Jewels do Shorts ainda não aparecem no chat que o bot consegue ler. Por enquanto valem Super Chat, Super Sticker e membros.
 
 ---
 
-## Economizar CPU (servidor mais barato)
-Recodificar vídeo ao vivo pesa. Converta tudo **uma vez** antes:
+## Passo a passo (tudo pelo celular)
+
+### 1. Liberar live no YouTube
+1. No navegador do celular, abra **studio.youtube.com** em **"versão para computador"**.
+2. **Criar → Transmitir ao vivo**. Na primeira vez o YouTube pode pedir verificação por telefone e
+   **levar até 24h** pra liberar.
+3. Na aba **Stream**, copie a **chave da stream**. Não mostre pra ninguém.
+4. Em configurações da stream, **ative o "Início automático"** e **desative o "Término automático"**.
+5. Pegue o **ID do canal** em **youtube.com/account_advanced** (começa com `UC…`).
+
+A live sai em 720x1280 (vertical), então o YouTube já mostra no feed do Shorts.
+
+### 2. Criar o servidor (VPS)
+Precisa de um servidor Linux com **2 núcleos e 2 GB de RAM ou mais**, com **Ubuntu 24.04**:
+- **Hetzner** (modelo CX22): cerca de €5/mês, dá pra criar pelo navegador do celular.
+- **Oracle Cloud "Always Free"**: grátis, mas o cadastro é mais chato e às vezes falta vaga.
+- Qualquer outro VPS com Ubuntu/Debian serve.
+
+Anote o **IP** e a **senha de root** que o site mostrar.
+
+### 3. Conectar no servidor pelo celular
+- **Android**: instale o app **Termux** (pela F-Droid ou Play Store) e digite:
+  ```
+  pkg install openssh
+  ssh root@SEU_IP
+  ```
+- **iPhone**: use um app de SSH, como o Termius.
+- Ou use o botão **"Console"** do painel do próprio VPS.
+
+### 4. Instalar com um comando
+Cole isto e aperte Enter:
 ```bash
-./preparar.sh                                  # gera midia/preparados/*.mp4 no formato certo
-sed -i 's/COPIAR_SEM_RECODIFICAR=0/COPIAR_SEM_RECODIFICAR=1/' config.env
-sudo systemctl restart live
+curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/live-infinita-automatizada-ns6yq7/instalar.sh | sudo bash
 ```
-O `preparar.sh` também adiciona áudio silencioso em vídeos sem som (a live precisa de áudio contínuo).
-Rode de novo sempre que adicionar vídeos novos.
+Ele vai perguntar 3 coisas: a **chave da stream**, o **ID do canal** e uma **senha pro painel**.
+Em alguns minutos a live entra no ar e **fica pra sempre**, mesmo se o servidor reiniciar.
+
+### 5. Painel pelo celular
+Abra **http://SEU_IP/admin**, digite a senha e você pode:
+- enviar a **música de fundo** (MP3);
+- enviar o **som depois de doação** (MP3);
+- **testar a notificação de doação**;
+- ver o **status** (chat conectado, fase do campeonato, campeões, doadores).
+
+Sem música enviada, toca a **trilha original do jogo** (feita do zero, sem direitos autorais).
+⚠️ **Músicas de outras pessoas** podem fazer o YouTube **silenciar a live, dar strike ou derrubar o canal**.
+
+Pra ver o jogo direto (sem o YouTube): **http://SEU_IP/**
 
 ---
 
-## Cuidados importantes (para o canal não ser derrubado)
-- **Direitos autorais**: use só vídeos/músicas seus, livres de direitos (ex.: Biblioteca de Áudio do YouTube,
-  Pixabay, músicas com licença para streaming) ou com permissão. Live com música protegida é derrubada rápido e gera strike.
-- **Conteúdo repetitivo**: o YouTube pode não monetizar lives que são só reprise sem valor agregado.
-  Coloque algo próprio: uma arte/identidade visual, playlists bem curadas, tema bem definido (estudo, dormir, chuva...).
-- **YouTube** só guarda a gravação (VOD) das últimas 12h de uma live longa — normal para live 24/7.
-- Às vezes a plataforma encerra uma live muito longa; o script reconecta sozinho e, com "início automático"
-  ativado, ela volta (no YouTube pode gerar um novo link de live).
+## Comandos úteis (no servidor)
+| O que | Comando |
+|------|---------|
+| Ver o que está acontecendo | `docker logs -f live` |
+| Reiniciar a live | `docker restart live` |
+| Parar a live | `docker stop live` |
+| Atualizar o jogo | rodar o comando de instalação de novo |
+| Trocar chave/canal/senha | `nano /opt/live.env` e depois `docker restart live` |
 
-## Arquivos
-| Arquivo | Para que serve |
-|---------|---------------|
-| `live.sh` | Script principal: monta a playlist e transmite em loop, reconectando se cair |
-| `preparar.sh` | Converte os vídeos para o modo de baixo consumo de CPU |
-| `config.env.example` | Modelo de configuração (copie para `config.env`) |
-| `live.service` | Serviço que liga a live junto com o servidor |
-| `Dockerfile`, `docker-compose.yml` | Opção de rodar via Docker |
+## Para quem for mexer no código
+| Arquivo | O que faz |
+|---------|-----------|
+| `public/batalha.js` | Física e regras da luta (fios por batida, velocidade, tempos) |
+| `public/torneio.js` | Estrutura do campeonato |
+| `public/jogo.js` | Tela, fases, bot e notificações |
+| `public/sons.js` | Efeitos sonoros e trilha original |
+| `servidor/paises.js` | Lista de países e detecção nas várias línguas |
+| `servidor/chat.js` | Leitura do chat do YouTube (sem chave de API) |
+| `servidor/server.js` | Votos, doações, salvamento e painel /admin |
+| `transmitir.sh` | Tela virtual + navegador + FFmpeg → YouTube |
+| `instalar.sh` / `Dockerfile` | Instalação no servidor |
+
+Testar no computador: `npm install && npm run teste` e abrir `http://localhost:3000` (usa um chat simulado).

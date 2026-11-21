@@ -1,5 +1,6 @@
-config.env
-midia/*/*
-!midia/*/.gitkeep
+node_modules/
+dados/
 *.log
-.playlist.txt
+.env
+public/audio/custom/*
+!public/audio/custom/LEIA-ME.txt
