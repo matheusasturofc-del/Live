@@ -29,6 +29,13 @@ if [ ! -f "$ENV" ]; then
   chmod 600 "$ENV"
 fi
 
+# Pouca RAM (ex.: 1 GB): cria 2 GB de memória extra no disco (swap) para não travar
+if [ "$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)" -lt 1800 ] && ! swapon --show | grep -q .; then
+  echo "=== Pouca RAM: criando 2 GB de swap ==="
+  (fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048) && chmod 600 /swapfile \
+    && mkswap /swapfile >/dev/null && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab || true
+fi
+
 echo "=== Instalando Docker e Git ==="
 command -v git >/dev/null || (apt-get update && apt-get install -y git)
 command -v docker >/dev/null || curl -fsSL https://get.docker.com | sh

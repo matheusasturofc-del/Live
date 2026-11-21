@@ -63,14 +63,12 @@ O servidor é um "computador na nuvem" que fica ligado pra sempre.
 - ✅ **2 vCPU** e **2 GB de RAM** (recomendado)
 - 🟡 **1 vCPU** também funciona, num modo mais leve (24 fps), mas fica no limite
 
-**Recomendado: DokeHost → VPS Linux** (pesquisa de nov/2026)
-- ✅ Aceita **Pix** (ativa na hora) e boleto
-- ✅ Virtualização **KVM**
-- ✅ Pagamento **mensal**, sem fidelidade
-- ✅ **7 dias** pra pedir o dinheiro de volta
-- Escolha o plano com **2 vCPU / 2 GB**, datacenter **Brasil**, sistema **Ubuntu** (versão LTS mais nova)
+**Opções com Pix ou boleto (pesquisa de nov/2026):**
+- **DokeHost → VPS Canadá**: a partir de R$ 16,90/mês (2 vCPU / 1 GB), Pix, KVM, mensal, 7 dias pra pedir o dinheiro de volta. Servidor fora do Brasil não atrapalha: a live vai direto pro YouTube.
+- **DokeHost → VPS Linux** (Brasil): R$ 55,90/mês no plano 2 e às vezes **esgotado**.
+- **KingHost**: 2 vCPU / 4 GB por cerca de R$ 33/mês, tem boleto.
 
-**Outras opções:** KingHost (2 vCPU / 4 GB por cerca de R$ 33/mês, tem boleto), Locaweb, Hostinger KVM.
+> Com 1 GB de RAM, o instalador cria memória extra (swap) sozinho.
 Confira o preço na hora de pagar, porque promoções mudam.
 
 > 💡 Prefira **pagamento mensal**. Preço "promocional" geralmente exige contrato longo e aumenta na renovação.
