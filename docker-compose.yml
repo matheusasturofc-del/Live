@@ -1,0 +1,7 @@
+services:
+  live:
+    build: .
+    restart: always          # volta sozinha se cair ou se o servidor reiniciar
+    volumes:
+      - ./config.env:/live/config.env:ro
+      - ./midia:/live/midia
