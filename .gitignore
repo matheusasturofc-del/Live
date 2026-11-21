@@ -1,5 +1,5 @@
 config.env
-midia/**/*
-!midia/**/.gitkeep
+midia/*/*
+!midia/*/.gitkeep
 *.log
 .playlist.txt
