@@ -82,7 +82,10 @@ function arquivo(res, base, rel) {
   if (!p.startsWith(base)) { res.writeHead(403).end(); return; }
   fs.readFile(p, (err, data) => {
     if (err) { res.writeHead(404).end('not found'); return; }
-    res.writeHead(200, { 'Content-Type': TIPOS[path.extname(p)] || 'application/octet-stream', 'Cache-Control': 'max-age=3600' });
+    const ext = path.extname(p);
+    // código do jogo sempre atualizado; bandeiras, fonte e áudio podem ficar guardados
+    const cache = ['.html', '.js'].includes(ext) ? 'no-cache' : 'max-age=3600';
+    res.writeHead(200, { 'Content-Type': TIPOS[ext] || 'application/octet-stream', 'Cache-Control': cache });
     res.end(data);
   });
 }
