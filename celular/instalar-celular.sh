@@ -76,13 +76,14 @@ pkill -f "servidor/server.js"; pkill -f proot; pulseaudio --kill; termux-wake-un
 echo "Live parada."
 EOF
 chmod +x "$HOME/live-iniciar.sh" "$HOME/live-parar.sh"
+# comandos de verdade (funcionam na hora, sem reabrir o Termux)
 sed -i '/alias live/d' "$HOME/.bashrc" 2>/dev/null || true
-{
-  echo "alias live='nohup bash ~/live-iniciar.sh > ~/live.log 2>&1 & echo Live ligando em segundo plano. Ver: live-log'"
-  echo "alias live-parar='bash ~/live-parar.sh'"
-  echo "alias live-log='tail -f ~/live.log'"
-  echo "alias live-atualizar='curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/$BRANCH/celular/instalar-celular.sh | bash'"
-} >> "$HOME/.bashrc"
+B="$PREFIX/bin"
+printf '#!/data/data/com.termux/files/usr/bin/bash\nnohup bash ~/live-iniciar.sh > ~/live.log 2>&1 &\necho "Live ligando em segundo plano. Para ver: live-log"\n' > "$B/live"
+printf '#!/data/data/com.termux/files/usr/bin/bash\nbash ~/live-parar.sh\n' > "$B/live-parar"
+printf '#!/data/data/com.termux/files/usr/bin/bash\ntail -n 30 -f ~/live.log\n' > "$B/live-log"
+printf '#!/data/data/com.termux/files/usr/bin/bash\ncurl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/%s/celular/instalar-celular.sh | bash\n' "$BRANCH" > "$B/live-atualizar"
+chmod +x "$B/live" "$B/live-parar" "$B/live-log" "$B/live-atualizar"
 
 # Liga sozinha quando o celular reiniciar (precisa do app Termux:Boot)
 mkdir -p "$HOME/.termux/boot"
@@ -91,7 +92,7 @@ chmod +x "$HOME/.termux/boot/live"
 
 echo
 echo "✅ Instalado! Espaço livre agora: $(( $(df -k "$HOME" | awk 'NR==2{print $4}') / 1024 )) MB"
-echo "   Ligar a live:   live      (feche e abra o Termux uma vez antes)"
+echo "   Ligar a live:   live"
 echo "   Parar a live:   live-parar"
 echo "   Ver o que acontece: live-log   (sair: Ctrl+C)"
 echo "   Painel:         http://localhost:3000/admin  (no navegador do celular)"

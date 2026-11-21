@@ -87,7 +87,7 @@ curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/liv
 - No fim, ele pede: **chave da stream**, **ID do canal** e uma **senha do painel**.
 
 ### d) Ligar a live
-**Feche o Termux totalmente** (arraste ele pra fora dos apps recentes), abra de novo e digite:
+Digite:
 ```
 live
 ```
