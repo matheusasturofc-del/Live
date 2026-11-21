@@ -71,8 +71,12 @@ done
 EOF
 cat > "$HOME/live-parar.sh" <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
-pkill -f live-iniciar.sh; pkill -f transmitir.sh; pkill -f ffmpeg; pkill -f chromium; pkill -f Xvfb
-pkill -f "servidor/server.js"; pkill -f proot; pulseaudio --kill; termux-wake-unlock 2>/dev/null
+# Para a live na hora (força o fechamento de tudo)
+pkill -9 -f live-iniciar.sh
+pkill -9 -f proot
+pkill -9 -f "ffmpeg|chromium|Xvfb|servidor/server.js" 2>/dev/null
+pulseaudio --kill 2>/dev/null
+(termux-wake-unlock >/dev/null 2>&1 &)
 echo "Live parada."
 EOF
 chmod +x "$HOME/live-iniciar.sh" "$HOME/live-parar.sh"
