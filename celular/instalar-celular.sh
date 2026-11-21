@@ -6,31 +6,43 @@ set -e
 BRANCH="claude/live-infinita-automatizada-ns6yq7"
 REPO="https://github.com/matheusasturofc-del/Live.git"
 ENV="$HOME/live.env"
+PASTA="$HOME/live"
 
-echo "=== 1/4 Instalando o básico no Termux ==="
+echo "=== 1/5 Conferindo espaço livre ==="
+livre_mb=$(( $(df -k "$HOME" | awk 'NR==2{print $4}') / 1024 ))
+echo "Espaço livre: ${livre_mb} MB"
+if [ "$livre_mb" -lt 2500 ]; then
+  echo "❌ Precisa de pelo menos 2500 MB livres (ideal: 3000 MB)."
+  echo "   Apague fotos/vídeos/apps e rode o comando de novo."
+  exit 1
+fi
+
+echo "=== 2/5 Instalando o básico no Termux ==="
 pkg update -y
-pkg install -y proot-distro pulseaudio
+pkg install -y proot-distro pulseaudio git nodejs-lts
 
-echo "=== 2/4 Instalando um Linux (Debian) dentro do Termux ==="
+echo "=== 3/5 Baixando o jogo ==="
+if [ -d "$PASTA/.git" ]; then
+  git -C "$PASTA" fetch --depth 1 origin "$BRANCH" && git -C "$PASTA" reset --hard FETCH_HEAD
+else
+  git clone --depth 1 -b "$BRANCH" "$REPO" "$PASTA"
+fi
+(cd "$PASTA" && npm ci --omit=dev --no-audit --no-fund)
+
+echo "=== 4/5 Instalando Linux + navegador + FFmpeg (demora uns 10-20 min) ==="
 proot-distro install debian 2>/dev/null || echo "(Debian já estava instalado)"
-
-echo "=== 3/4 Instalando navegador, FFmpeg e o jogo (demora uns 10-20 min) ==="
 proot-distro login debian -- bash -c "
-  set -e
   export DEBIAN_FRONTEND=noninteractive
+  dpkg --configure -a 2>/dev/null || true
+  apt-get clean
   apt-get update
-  apt-get install -y --no-install-recommends chromium xvfb ffmpeg pulseaudio-utils fonts-noto-color-emoji \
-    nodejs npm git curl ca-certificates
-  if [ -d /root/live/.git ]; then
-    git -C /root/live fetch --depth 1 origin $BRANCH && git -C /root/live reset --hard FETCH_HEAD
-  else
-    git clone --depth 1 -b $BRANCH $REPO /root/live
-  fi
-  cd /root/live && npm ci --omit=dev
+  apt-get install -y --no-install-recommends chromium xvfb ffmpeg pulseaudio-utils \
+    fonts-noto-color-emoji nodejs ca-certificates curl
+  apt-get clean   # apaga os downloads para liberar espaço
 "
 
 if [ ! -f "$ENV" ]; then
-  echo "=== 4/4 Configuração ==="
+  echo "=== 5/5 Configuração ==="
   read -r -p "Chave de transmissão do YouTube: " k < /dev/tty
   read -r -p "ID do seu canal (começa com UC...): " c < /dev/tty
   read -r -p "Crie uma senha para o painel /admin: " s < /dev/tty
@@ -40,7 +52,7 @@ if [ ! -f "$ENV" ]; then
   chmod 600 "$ENV"
 fi
 
-# ---------- comandos "live" e "live-parar" ----------
+# ---------- comandos "live", "live-parar", "live-log", "live-atualizar" ----------
 cat > "$HOME/live-iniciar.sh" <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 # Liga a live (e religa sozinha se cair)
@@ -52,7 +64,7 @@ sleep 1
 pactl load-module module-null-sink sink_name=live >/dev/null   # som vai pra live, não pro alto-falante
 pactl set-default-sink live
 while true; do
-  proot-distro login debian --bind "$HOME/live.env:/root/live.env" -- bash -c \
+  proot-distro login debian --bind "$HOME/live:/root/live" --bind "$HOME/live.env:/root/live.env" -- bash -c \
     'set -a; . /root/live.env; set +a; export PULSE_SERVER=127.0.0.1; cd /root/live && exec ./transmitir.sh'
   echo "A live parou, religando em 10s..."; sleep 10
 done
@@ -64,12 +76,13 @@ pkill -f "servidor/server.js"; pkill -f proot; pulseaudio --kill; termux-wake-un
 echo "Live parada."
 EOF
 chmod +x "$HOME/live-iniciar.sh" "$HOME/live-parar.sh"
-grep -q "alias live=" "$HOME/.bashrc" 2>/dev/null || {
-  echo "alias live='nohup bash ~/live-iniciar.sh > ~/live.log 2>&1 & echo Live ligando em segundo plano. Ver: live-log'" >> "$HOME/.bashrc"
-  echo "alias live-parar='bash ~/live-parar.sh'" >> "$HOME/.bashrc"
-  echo "alias live-log='tail -f ~/live.log'" >> "$HOME/.bashrc"
-  echo "alias live-atualizar='curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/$BRANCH/celular/instalar-celular.sh | bash'" >> "$HOME/.bashrc"
-}
+sed -i '/alias live/d' "$HOME/.bashrc" 2>/dev/null || true
+{
+  echo "alias live='nohup bash ~/live-iniciar.sh > ~/live.log 2>&1 & echo Live ligando em segundo plano. Ver: live-log'"
+  echo "alias live-parar='bash ~/live-parar.sh'"
+  echo "alias live-log='tail -f ~/live.log'"
+  echo "alias live-atualizar='curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/$BRANCH/celular/instalar-celular.sh | bash'"
+} >> "$HOME/.bashrc"
 
 # Liga sozinha quando o celular reiniciar (precisa do app Termux:Boot)
 mkdir -p "$HOME/.termux/boot"
@@ -77,7 +90,7 @@ printf '#!/data/data/com.termux/files/usr/bin/bash\nbash ~/live-iniciar.sh > ~/l
 chmod +x "$HOME/.termux/boot/live"
 
 echo
-echo "✅ Instalado!"
+echo "✅ Instalado! Espaço livre agora: $(( $(df -k "$HOME" | awk 'NR==2{print $4}') / 1024 )) MB"
 echo "   Ligar a live:   live      (feche e abra o Termux uma vez antes)"
 echo "   Parar a live:   live-parar"
 echo "   Ver o que acontece: live-log   (sair: Ctrl+C)"
