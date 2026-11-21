@@ -21,6 +21,11 @@ if [ ! -f "$ENV" ]; then
   perguntar STREAM_KEY "Chave de transmissão do YouTube"
   perguntar YT_CHANNEL_ID "ID do seu canal (começa com UC...)"
   perguntar ADMIN_SENHA "Crie uma senha para o painel /admin"
+  # Servidor de 1 núcleo: modo leve (24 fps, compressão mais rápida)
+  if [ "$(nproc)" -le 1 ]; then
+    printf 'FPS=24\nPRESET=ultrafast\nBITRATE=2500k\n' >> "$ENV"
+    echo "Servidor com 1 núcleo: modo leve ativado."
+  fi
   chmod 600 "$ENV"
 fi
 

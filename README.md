@@ -4,7 +4,7 @@ Live **vertical** no YouTube Shorts, interativa, que roda **sozinha 24h** num se
 
 ✅ Não precisa de computador
 ✅ Não precisa do celular ligado
-✅ Grátis e sem cartão (Hugging Face)
+✅ Dá pra pagar o servidor com **Pix** (sem cartão)
 ✅ Tudo se configura pelo celular
 
 ---
@@ -12,12 +12,10 @@ Live **vertical** no YouTube Shorts, interativa, que roda **sozinha 24h** num se
 ## 📋 Resumo rápido
 
 1. Liberar live no YouTube
-2. Criar conta no Hugging Face (só e-mail)
-3. Criar o Space
-4. Colocar a chave da stream
-5. Colar o arquivo Dockerfile
-6. Manter acordado (cron-job.org)
-7. Mandar as músicas pelo painel
+2. Contratar um servidor (VPS) com Pix
+3. Conectar pelo app Termux
+4. Colar 1 comando
+5. Mandar as músicas pelo painel
 
 Cada passo está explicado abaixo 👇
 
@@ -55,134 +53,97 @@ youtube.com/account_advanced
 
 ---
 
-## 2️⃣ Conta no Hugging Face
+## 2️⃣ Servidor (VPS) com Pix
 
-É um site que roda programas na nuvem de graça, **sem cartão**.
+O servidor é um "computador na nuvem" que fica ligado pra sempre.
 
-**a)** Abra:
-```
-huggingface.co/join
-```
-**b)** Crie a conta com e-mail e senha.
+**O plano precisa ter:**
+- ✅ Virtualização **KVM** (⚠️ **não** pode ser "LXC" nem "OpenVZ", porque o Docker não funciona neles)
+- ✅ **Ubuntu 24.04** (ou 22.04, ou Debian 12)
+- ✅ **2 vCPU** e **2 GB de RAM** (recomendado)
+- 🟡 **1 vCPU** também funciona, num modo mais leve (24 fps), mas fica no limite
 
-**c)** Confirme o e-mail (veja a caixa de entrada e o spam).
+**Provedores brasileiros que aceitam Pix (confira o preço na hora):**
+- DokeHost
+- Locaweb
+- Hostinger (plano KVM)
+- VPS Brasil
 
-📝 **Anote:** seu nome de usuário.
+> 💡 Prefira **pagamento mensal**. Preço "promocional" geralmente exige contrato longo e aumenta na renovação.
 
----
+Ao contratar, escolha **Ubuntu 24.04** e crie uma **senha de root**.
 
-## 3️⃣ Criar o Space
-
-**a)** Abra:
-```
-huggingface.co/new-space
-```
-**b)** Preencha:
-- **Space name:** `live`
-- **Select the Space SDK:** **Docker**
-- **Docker template:** **Blank**
-- **Space hardware:** **CPU basic · FREE**
-- **Visibility:** **Public**
-
-**c)** Toque em **Create Space**.
+📝 **Anote:** o **IP** do servidor e a **senha de root**.
 
 ---
 
-## 4️⃣ Colocar a chave (segredos)
+## 3️⃣ Conectar pelo celular
 
-Dentro do Space, toque em **Settings** e desça até **Variables and secrets**.
+### Android
+**a)** Instale o app **Termux** (F-Droid ou Play Store).
 
-Toque em **New secret** e crie (um por vez):
+**b)** Abra e digite:
+```
+pkg install openssh
+```
 
-**Secret 1**
-- Name: `STREAM_KEY`
-- Value: a chave da stream do YouTube
+**c)** Depois (troque pelo seu IP):
+```
+ssh root@SEU_IP
+```
 
-**Secret 2**
-- Name: `ADMIN_SENHA`
-- Value: invente uma senha pro painel
+**d)** Digite `yes` e depois a senha de root.
 
-Agora toque em **New variable**:
-- Name: `YT_CHANNEL_ID`
-- Value: o ID do canal (começa com `UC`)
+> A senha não aparece enquanto você digita. É normal.
 
-> 🔒 Segredos ficam escondidos, ninguém vê, mesmo com o Space público.
+### iPhone
+Use o app **Termius**, com o IP, o usuário `root` e a senha.
+
+### Sem app
+Use o botão **"Console"** no painel do provedor.
 
 ---
 
-## 5️⃣ Colar o Dockerfile
+## 4️⃣ Instalar (1 comando)
 
-**a)** Abra este link e **copie tudo** (segure o dedo → Selecionar tudo → Copiar):
+Toque no ícone de **copiar** do bloco abaixo, cole no Termux e aperte Enter:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/live-infinita-automatizada-ns6yq7/instalar.sh | sudo bash
 ```
-https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/live-infinita-automatizada-ns6yq7/huggingface/Dockerfile
-```
 
-**b)** Volte ao Space → aba **Files** → **+ Add file** → **Create a new file**.
+Ele pergunta 3 coisas:
+1. Chave da stream
+2. ID do canal
+3. Uma senha nova pro painel
 
-**c)** No nome do arquivo, escreva exatamente:
-```
-Dockerfile
-```
-**d)** Cole o conteúdo e toque em **Commit new file to main**.
+⏳ Espere uns 5 a 10 minutos.
 
-⏳ O Space começa a montar sozinho. Leva uns **5 a 10 minutos**.
-
-Acompanhe na aba **Logs**. Quando aparecer **"Transmitindo"**, a live está no ar! 🎉
+🎉 **Pronto!** A live entra no ar e fica pra sempre, mesmo se o servidor reiniciar.
 
 ---
 
-## 6️⃣ Manter acordado
+## 5️⃣ Painel no celular
 
-No plano grátis, o Space **dorme depois de 48h sem visitas**. Um site grátis faz essas visitas por você:
+Abra no navegador (troque pelo seu IP):
+```
+http://SEU_IP/admin
+```
 
-**a)** Crie uma conta grátis (só e-mail) em:
-```
-cron-job.org
-```
-**b)** Toque em **Create cronjob**.
-
-**c)** Em **URL**, coloque (troque `SEUUSUARIO` pelo seu usuário do Hugging Face):
-```
-https://SEUUSUARIO-live.hf.space/api/votos
-```
-**d)** Em **Execution schedule**, escolha **a cada 30 minutos** e salve.
-
----
-
-## 7️⃣ Painel no celular
-
-Abra (troque `SEUUSUARIO`):
-```
-https://SEUUSUARIO-live.hf.space/admin
-```
-Digite a senha (`ADMIN_SENHA`). No painel você pode:
+Digite a senha. No painel você pode:
 - 🎵 Mandar a **música de fundo** (MP3)
 - 💸 Mandar o **som de doação** (MP3)
 - 🧪 **Testar** a notificação de doação
 - 📊 Ver o **status** da live
 
-> ⚠️ No plano grátis, **o que é enviado pelo painel some quando o Space reinicia**.
-> Pra música ficar fixa: na aba **Files** → **+ Add file** → **Upload files**,
-> envie com os nomes **`fundo.mp3`** e **`doacao.mp3`**.
-> Como o Space é público, quem entrar nele também consegue baixar esses arquivos.
-
-> Sem música, toca a trilha original do jogo (sem direitos autorais).
+> Sem música enviada, toca a trilha original do jogo (sem direitos autorais).
 
 > ⚠️ Músicas de outras pessoas podem fazer o YouTube **silenciar a live, dar strike ou derrubar o canal**.
 
-Ver o jogo direto (sem o YouTube):
+Pra ver o jogo direto (sem o YouTube):
 ```
-https://SEUUSUARIO-live.hf.space/
+http://SEU_IP/
 ```
-
----
-
-## ⚠️ Limites do plano grátis (Hugging Face)
-
-- Quando o Space reinicia, **o progresso do campeonato, os campeões passados e o ranking de doadores voltam do zero**.
-- O Hugging Face foi feito pra projetos de inteligência artificial. Eles **podem pausar** o Space se acharem que é uso indevido.
-- Se parar: **Settings → Restart this Space** (ou **Factory rebuild**).
-- Atualizar o jogo: **Settings → Factory rebuild** (baixa a versão mais nova do GitHub).
 
 ---
 
@@ -246,37 +207,79 @@ Super Chat, Super Sticker ou novo membro:
 
 ---
 
+## 🛠 Comandos úteis
+
+Digite no Termux, já conectado no servidor.
+
+**Ver o que está acontecendo:**
+```
+docker logs -f live
+```
+(pra sair: Ctrl + C)
+
+**Reiniciar a live:**
+```
+docker restart live
+```
+
+**Parar a live:**
+```
+docker stop live
+```
+
+**Atualizar o jogo:** cole de novo o comando do passo 4️⃣.
+
+**Trocar chave, canal ou senha:**
+```
+nano /opt/live.env
+```
+Depois de salvar:
+```
+docker restart live
+```
+
+---
+
 ## ❓ Problemas comuns
 
 **A live não aparece no YouTube**
-- Veja a aba **Logs** do Space.
-- Confira o segredo `STREAM_KEY` (sem espaço sobrando).
+- Veja os erros: `docker logs -f live`
+- Confira a chave: `nano /opt/live.env`
 - Confira se o YouTube está com **Início automático** ligado.
 
-**O Space mostra "Build error"**
-- Abra **Logs** e me mande um print.
-- Tente **Settings → Factory rebuild**.
+**Erro ao instalar o Docker**
+- O servidor provavelmente é **LXC/OpenVZ**. Peça ao provedor pra trocar para **KVM**.
+
+**A live trava ou fica lenta**
+- Servidor com pouca força. Coloque estas linhas em `/opt/live.env` e rode `docker restart live`:
+```
+FPS=24
+PRESET=ultrafast
+BITRATE=2500k
+```
 
 **Os votos não aparecem**
-- Confira a variável `YT_CHANNEL_ID` (começa com `UC`).
+- Confira o ID do canal (começa com `UC`).
 - O chat só conecta depois que a live está no ar. Espere 1 minuto.
 
-**O Space dormiu ("Sleeping")**
-- Abra o link do Space pra acordar.
-- Confira o cron-job.org (passo 6️⃣).
+**O painel /admin não abre**
+- Confira se digitou `http://` (sem o "s").
+- Veja se o provedor tem firewall e libere a **porta 80**.
 
 ---
 
 <details>
-<summary>🖥 Outra opção: servidor próprio (VPS)</summary>
+<summary>🆓 Opções grátis (e por que não são o caminho principal)</summary>
 
-Mais estável que o Hugging Face e o progresso nunca se perde, mas precisa de cartão (Oracle grátis) ou pagar (~€5/mês, alguns aceitam Pix).
+- **Oracle Cloud Always Free:** grátis e forte, mas **pede cartão** pra confirmar identidade (passo a passo abaixo).
+- **Hugging Face Spaces:** os Spaces com Docker **agora são pagos** (plano PRO). Se um dia você assinar, use o arquivo `huggingface/Dockerfile`.
+- **Google Cloud, AWS, Azure:** pedem cartão e as máquinas grátis são fracas demais.
 
-### Oracle Cloud (grátis, pede cartão)
+### Oracle Cloud (pede cartão, não cobra)
 
 > 💳 Pedem cartão de crédito só pra confirmar que você é uma pessoa. A conta grátis **não cobra nada**.
 
-#### a) Preparar o Termux (Android)
+#### a) Criar uma chave no Termux
 Instale o app **Termux** (F-Droid ou Play Store), abra e rode um comando por vez:
 ```
 pkg install openssh
@@ -321,55 +324,11 @@ Quando ficar **verde (Running)**, anote o **Public IP address**.
 - **Destination port range:** `80`
 - Toque em **Add**.
 
-### Conectar no servidor
-
-No Termux (troque pelo IP do servidor):
+#### e) Conectar
 ```
 ssh ubuntu@SEU_IP
 ```
-Digite `yes` quando perguntar. Pronto, você está dentro do servidor.
-
-> Usa outro servidor que não é da Oracle e que tem senha? Aí é `ssh root@SEU_IP` e a senha.
-
-> No iPhone, use o app **Termius**.
-
-#### Instalar (1 comando)
-```bash
-curl -fsSL https://raw.githubusercontent.com/matheusasturofc-del/Live/claude/live-infinita-automatizada-ns6yq7/instalar.sh | sudo bash
-```
-Ele pergunta: chave da stream, ID do canal e senha do painel.
-Painel: `http://SEU_IP/admin` · Jogo: `http://SEU_IP/`
-
-#### Comandos úteis
-
-Digite no Termux, já conectado no servidor.
-
-**Ver o que está acontecendo:**
-```
-docker logs -f live
-```
-(pra sair: Ctrl + C)
-
-**Reiniciar a live:**
-```
-docker restart live
-```
-
-**Parar a live:**
-```
-docker stop live
-```
-
-**Atualizar o jogo:** cole de novo o comando de instalação acima.
-
-**Trocar chave, canal ou senha:**
-```
-nano /opt/live.env
-```
-Depois de salvar:
-```
-docker restart live
-```
+Depois siga o passo 4️⃣ normalmente.
 
 </details>
 
